@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html" charset="UTF-8" />
+	
+	<title>парсер Excel=&#62;HTML=&#62;MYSQL</title>
+	
+	<link rel="stylesheet" type="text/css" href=""/>
+ 	<style type="text/css">
+    body{
+        background-color: #C4C4C4;
+    }
+        div{
+            background-color: #999999;
+            width: 600px;
+            height: 100px;
+        }
+        div, input {
+            border-radius: 10px;
+            -moz-border-radius: 10px;
+            -webkit-border-radius: 10px;
+        }
+        form{
+            margin: auto;
+        }
+     </style>
+ 	
+ 	<script type="text/javascript" src=""></script>
+    <script type="text/javascript"></script>
+</head>
+
+<body>
+<h1>парсер Excel=&#62;HTML=&#62;MYSQL</h1>
+<h3>Шаг 1: выберите excel-файл и нажмите кнопку для преобразования в HTML</h3>
+<div>
+ <form name="exc_upload" method="post" action="sample.php" enctype="multipart/form-data">
+  <select name="style" hidden="1">
+  	<option value="old">ParseFromString()</option>
+  	<option value="segment" selected>ParseFromFile()</option>
+  </select><br>
+  &nbsp;Excel-файл:&nbsp;<input type="file" size=30 name="excel_file">
+  &nbsp;
+  <input type="button" value="парсить в HTML" onClick="javascript:if(document.exc_upload.excel_file.value.length==0) { alert('Вы должны сначала определить файл '); return; }; submit();">
+  <p>&nbsp;ВАЖНО!!! файл должен быть типа 'Excel 97-2003' и содержать не более одного листа</p>
+ </form>
+</div>
+
+
+</body>
+</html>
