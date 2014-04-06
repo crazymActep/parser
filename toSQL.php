@@ -40,8 +40,8 @@ $query = "CREATE TABLE $tableName (
   `productName` varchar(255) DEFAULT NULL,
   `project` int(11) DEFAULT NULL,
   `quantity` int(11) DEFAULT NULL,
-  `unitPrice` int(11) DEFAULT NULL,
-  `totalPrice` int(11) DEFAULT NULL,
+  `unitPrice` float(11,2) DEFAULT NULL,
+  `totalPrice` float(11,2) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8";
 $result = db_connection($query);
@@ -58,9 +58,9 @@ foreach($data as $row => $field){
 }
 
         if ($result) {
-            success('таблица успешно создана в БД');
+            success('таблица успешно создана в базе данных');
         } else {
-            fail('ошибка добавления в БД');
+            fail('ошибка добавления в базу данных');
         }
         
         

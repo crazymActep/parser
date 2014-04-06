@@ -5,12 +5,7 @@
         table{
             background-color: #C4C4C4;
         }
-        div{
-            background-color: #999999;
-            width: 700px;
-            height: 50px;
-        }
-        div, input {
+        input {
             border-radius: 10px;
             -moz-border-radius: 10px;
             -webkit-border-radius: 10px;
@@ -28,6 +23,20 @@
         }
         .markedRed{
             background-color: #FFB5B2;
+        }
+        #resultMsg{
+            border-radius: 10px;
+            -moz-border-radius: 10px;
+            -webkit-border-radius: 10px;
+            font-size: 20px;
+            padding: 0px 5px;
+        }
+        .success{
+            background-color: #C6FFD5;
+            
+        }
+        .fail{
+            background-color: #FFC5CF;
         }
         
      </style>
@@ -110,13 +119,37 @@
                 var firstlenght = first.length;
                 var second = price.substr(firstlenght);   // строка копеек
                 first = first.replace(".","");    //удалние точки в рублёвой части строки 
-                var newprice = first+second;
-                return $(o).text(newprice);
+                var newprice = first+second;    // склеиванье обратно в целую строку
+                return $(o).text(newprice);                              
+            }
+            var status;
+            // ф-я проверки данных яйчеек на FLOAT перед отпракой в БД
+            function priceCheck(o){
+                
+                var price = $(o).text();
+                var correctPrice = parseFloat(price);    // страрается привести к float если неудачно - возвращает NaN
+                //return $(o).text(price);
+                
+                // прверяет значение на Nan
+                if (isNaN(correctPrice) == true) {
+            	   $('#resultMsg').addClass("fail").html("неверное значние в графе цен");  // вывод сообщения об ошибке
+                   //correctPrice = newprice;  возвращение оргинального значения
+                   return $(o).text(price).addClass('fail'); // подстветка некорректных данных и возаращение оригинальных данных в яйчейку (а не NaN)
+                  // return status = "NO";
+                   
+                }else{              
+                    return $(o).text(correctPrice).removeClass('fail');
+                    //return status = "OK";
+
+                } 
             }
 
             // фильтрация (пропуск чрезе функцию) колонок TotalPrice и UnitPrice по нажатию кнопки
             
             $('#filterTable').on('click', function(){
+                $('#resultMsg').removeClass("fail").html("");// очистка сообщения об ошибке (если было)
+                
+
                 // если выбрано значение UnitPrice в выпадающем списке
                 if ($(".sel option[value='UnitPrice']:selected")) {
                     // фильтрация колонки со значением UnitPrice
@@ -151,7 +184,37 @@
         
         // кнопка отправки
         $("#btnSave").on('click',function(){
+            $('#resultMsg').removeClass("fail").html("");// очистка сообщения об ошибке (если было)            
                 
+                // проверка значений яйчеек на FLOAT перед отпраавкой
+                
+                // если выбрано значение UnitPrice в выпадающем списке
+                if ($(".sel option[value='UnitPrice']:selected")) {
+                    // фильтрация колонки со значением UnitPrice
+                    $(".sel option[value='UnitPrice']:selected").removeClass(); // удаляет все классы у выбранного элемента option (если ранее кнопка нажмалась и классы присвавалсь)
+                    $(".sel option[value='UnitPrice']:selected").addClass('UnitPrice');
+                    var UnitPrice_ColIndex = $('.UnitPrice').parent().parent().index();
+                    //alert(UnitPrice_ColIndex); // отладка -  номер столбца с выбранным UnitPrice
+                    $('tr:not(:lt(2))').map(function(i,el){ // игнорирует первые две строки (кнопка, выпадающй список)
+                        return priceCheck( $('td:eq(' +  UnitPrice_ColIndex + ')', this) );
+                    });
+                }
+                // если выбрано значение TotalPrice в выпадающем списке
+                if ($(".sel option[value='TotalPrice']:selected")) {
+                    // фильтрация колонки со значением TotalPrice
+                    $(".sel option[value='TotalPrice']:selected").removeClass();
+                    $(".sel option[value='TotalPrice']:selected").addClass('TotalPrice');   // проверка выбрана ли значене TotalPrice в выпадающем списке
+                    var TotalPrice_ColIndex = $('.TotalPrice').parent().parent().index();
+                    //alert(TotalPrice_ColIndex); // отладка -  номер столбца с выбранным TotalPrice
+                    $('tr:not(:lt(2))').map(function(i,el){ // игнорирует первые две строки (кнопка, выпадающй список)
+                        return priceCheck( $('td:eq(' +  TotalPrice_ColIndex + ')', this) );
+                    });
+                }
+            // если все ценове яйчейки прошли проверку на FLOAT - сбор данных и отпрака в PHP
+            if ($('#resultMsg').hasClass("fail")) {
+                return;
+            }else{
+                                                                   
                 // имя таблцы из формы
                 var tableName = $('#tableName').val();
                 
@@ -182,18 +245,17 @@
                 // отправка постом  
                 $.post('toSQL.php', strVals, function(json){
         			// проверка значения возвращаемая сервером
-        			if (json.status == "fail") {
-        				alert(json.message);
+        			
+                    if (json.status == "fail") {
+        				$('#resultMsg').addClass("fail").html(json.message);
         			}
         			if (json.status == "success") {
-        				alert(json.message);
-        				//clearInputs();
+        				$('button').attr('disabled','true');   // отключение кнопок
+                        $('#resultMsg').addClass("success").html(json.message);
         			}
         		},"json");
                 
-                $.getJSON("toSQL.php", function(json) {
-                    alert(json.message);
-                });
+            }
                 
         });
          
@@ -201,29 +263,25 @@
      </script>
 </head>
 <body >
-<table>
-<tr>
-	<td>
+<a href="index.html">&#60;&#60; назад</a>
+
         <h3>Шаг 2:</h3>
         <p style="font-size: 12px;">
-        1) Удалите ненужные строки и столбцы</br>
-        2) Отредактируйте значения яйчеек таблицы вручную</br>
-        3) Сопоставьте столбцы для вливания в БД</br>
-        4) Нажмите кнопку для автоматической фильтрации колонок с ценами</br>  
-        4) нажмите кнопку отправки в БД
+        1) Удалите ненужные строки и столбцы<br/>
+        2) Отредактируйте значения яйчеек таблицы вручную<br/>
+        3) Сопоставьте столбцы для вливания в БД<br/>
+        4) Нажмите кнопку для автоматической фильтрации колонок с ценами<br/> 
+        5) нажмите кнопку отправки в БД
         </p>
-    </td>
-	<td style="margin-left: 50px">
         <form id="frm" method="post" action="toSQL.php">
             Имя таблцы для базы данных&nbsp;<input type="text" name="tableName" id="tableName"  size="20" />&nbsp;<span style="font-size: 12px;">(латинскими буквами без пробелов)</span><br />
             <br />
             <button type="submit" name="filterTable" id="filterTable">Отфильтровать колонки с ценами</button><br />
-            <button type="submit" name="btnSave" id="btnSave">ОТПРАВИТЬ В БАЗУ ДАННЫХ</button>
+            <button type="submit" name="btnSave" id="btnSave" style="font-size: 17px;">ОТПРАВИТЬ В БД</button>
+            <span id="resultMsg"></span>
             <input type="hidden" name="action" value="addRunner" id="action" />
         </form>
-    </td>
-</tr>
-</table>
+
 
 
 <br />
